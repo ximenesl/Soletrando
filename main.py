@@ -29,8 +29,8 @@ class SoletrandoApp(ctk.CTk):
         self.available_words = []
 
         logo_image = ctk.CTkImage(
-            light_image=Image.open("assets/SOLETRANDO.png"),
-            dark_image=Image.open("assets/SOLETRANDO.png"),
+            light_image=Image.open("assets/img/SOLETRANDO.png"),
+            dark_image=Image.open("assets/img/SOLETRANDO.png"),
             size=(300, 80)
         )
         self.logo_label = ctk.CTkLabel(self, image=logo_image, text="")
@@ -188,7 +188,7 @@ class TelaInicio(ctk.CTkFrame):
         super().__init__(parent, fg_color="transparent")
         self.controller = controller
 
-        self.label = ctk.CTkLabel(self, text="Tudo pronto para começar!", font=ctk.CTkFont(size=24, weight="bold")
+        self.label = ctk.CTkLabel(self, text="Tudo pronto para começar!", font=ctk.CTkFont(size=24, weight="bold"))
         self.label.pack(pady=(40, 20))
 
         self.level_label = ctk.CTkLabel(self, text="Escolha o nível (ano escolar):", font=ctk.CTkFont(size=16))
@@ -223,7 +223,7 @@ class TelaSoletrar(ctk.CTkFrame):
         super().__init__(parent, fg_color="transparent")
         self.controller = controller
 
-        self.word_label = ctk.CTkLabel(self, text="", font=ctk.CTkFont(size=22, weight="bold")
+        self.word_label = ctk.CTkLabel(self, text="", font=ctk.CTkFont(size=22, weight="bold"))
         self.word_label.pack(pady=(5, 5))
 
         self.emoji_label = ctk.CTkLabel(self, text="", font=ctk.CTkFont(size=60))
@@ -283,7 +283,7 @@ class TelaResultado(ctk.CTkFrame):
         super().__init__(parent, fg_color="transparent")
         self.controller = controller
 
-        self.result_label = ctk.CTkLabel(self, text="", font=ctk.CTkFont(size=24, weight="bold")
+        self.result_label = ctk.CTkLabel(self, text="", font=ctk.CTkFont(size=24, weight="bold"))
         self.result_label.pack(pady=(80, 20))
 
         self.word_info_label = ctk.CTkLabel(self, text="", font=ctk.CTkFont(size=18))

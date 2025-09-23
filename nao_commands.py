@@ -92,7 +92,7 @@ class NaoCommands:
                     confidence = value[1]
                     self.memory.insertData("WordRecognized", ["", 0])
 
-                    if confidence < 0.5:
+                    if confidence < 0.6:
                         continue
 
                     if word == "confirmar":
