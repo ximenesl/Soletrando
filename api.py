@@ -1,10 +1,21 @@
 import customtkinter as ctk
 import random
 import threading
+import unicodedata
+import os
 from nao_connection import NaoConnection
 from nao_commands import NaoCommands
 
+
 NAO_PORT = 9559
+
+
+def normalize_string(s: str) -> str:
+    """Remove acentos e converte para minúsculas."""
+    return ''.join(
+        c for c in unicodedata.normalize('NFD', s)
+        if unicodedata.category(c) != 'Mn'
+    ).lower()
 
 class SpellingGameApp(ctk.CTk):
     def __init__(self, words, nao_commands: NaoCommands):
@@ -94,8 +105,9 @@ class SpellingGameApp(ctk.CTk):
 
     def finalize_check(self):
         self.update_spelled_letters()
-        normalized_spelling = self.user_spelling.lower()
-        normalized_word = self.current_word.lower()
+           # Normaliza ambas as strings para fazer uma comparação sem acentos e sem case.
+        normalized_spelling = normalize_string(self.user_spelling)
+        normalized_word = normalize_string(self.current_word)
 
         if normalized_spelling == normalized_word:
             self.status_label.configure(
@@ -207,12 +219,15 @@ class IpConfigApp(ctk.CTk):
 
 
 def get_words():
+    _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+    _PROJECT_ROOT = os.path.dirname(_SCRIPT_DIR)
+    words_path = os.path.join(_PROJECT_ROOT, 'data', 'words.txt')
     try:
-        with open('words.txt', 'r', encoding='utf-8') as f:
+        with open(words_path, 'r', encoding='utf-8') as f:
             words = [line.strip() for line in f if line.strip() and len(line.strip()) > 2]
-        return words if words else ["soletrando", "python", "robotica"]
+        return words if words else ["soletrando", "python", "robótica"]
     except FileNotFoundError:
-        return ["soletrando", "python", "robotica"]
+        return ["soletrando", "python", "robótica"]
 
 
 if __name__ == "__main__":
