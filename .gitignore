@@ -1,0 +1,13 @@
+# Virtual Environment
+qi-venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# IDE/Editor specific files
+.vscode/
+.idea/
+
+# OS-specific files
+.DS_Store
