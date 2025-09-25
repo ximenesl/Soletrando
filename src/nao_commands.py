@@ -24,7 +24,7 @@ _LETTER_MAP_PATH = os.path.join(_SCRIPT_DIR, 'data', 'letter_map.json')
 
 LETTER_MAP = load_letter_map_from_json(_LETTER_MAP_PATH)
 REVERSE_LETTER_MAP = {spoken_word: letter for letter, spoken_words in LETTER_MAP.items() for spoken_word in spoken_words}
-VOCABULARY = list(REVERSE_LETTER_MAP.keys()) + ["confirmar", "apagar"]
+VOCABULARY = list(REVERSE_LETTER_MAP.keys())
 
 
 class NaoCommands:
@@ -37,6 +37,7 @@ class NaoCommands:
         self.touch = connection.get_service("ALTouch")
         self.left_hand_subscriber = None
         self.right_hand_subscriber = None
+        self.is_listening = False
 
         if self.asr:
             try:
@@ -57,28 +58,29 @@ class NaoCommands:
         else:
             print(f"[SIMULAÇÃO] NAO diria: {text}")
 
-    def start_listening_for_spelling(self, on_letter_spelled, on_final_word, source='nao'):
+    def start_listening_for_spelling(self, on_letter_spelled, source='nao'):
         if source == 'nao':
-            self._start_listening_from_nao(on_letter_spelled, on_final_word)
+            self._start_listening_from_nao(on_letter_spelled)
         elif source == 'pc':
-            self._start_listening_from_pc(on_final_word)
+            self._start_listening_from_pc(on_letter_spelled)
 
-    def _start_listening_from_nao(self, on_letter_spelled, on_final_word):
+    def _start_listening_from_nao(self, on_letter_spelled):
         """Inicia o reconhecimento de voz para soletrar uma palavra."""
         if not self.asr or not self.memory or not LETTER_MAP:
             self.say("Não consigo ouvir você agora ou o mapa de letras falhou ao carregar.")
             return
 
         current_spelling = ""
+        self.is_listening = True
 
         try:
             self.asr.setVocabulary(VOCABULARY, False)
             self.asr.subscribe("SpellingGame")
-            self.say("Pode começar a soletrar. Diga 'confirmar' quando terminar ou 'apagar' para a última letra.")
+            self.say("Pode começar a soletrar.")
 
             self.memory.insertData("WordRecognized", ["", 0])
 
-            while True:
+            while self.is_listening:
                 time.sleep(1)
                 value = self.memory.getData("WordRecognized")
                 if not (value and value[0]):
@@ -103,13 +105,6 @@ class NaoCommands:
                 if letter:
                     current_spelling += letter
                     on_letter_spelled(current_spelling)
-                elif word == "confirmar":
-                    on_final_word(current_spelling)
-                    break
-                elif word == "apagar":
-                    if current_spelling:
-                        current_spelling = current_spelling[:-1]
-                        on_letter_spelled(current_spelling)
 
         except Exception as e:
             print(f"Ocorreu um erro durante o reconhecimento de voz: {e}")
@@ -118,7 +113,11 @@ class NaoCommands:
             if self.asr:
                 self.asr.unsubscribe("SpellingGame")
 
-    def _start_listening_from_pc(self, on_final_word):
+    def stop_listening(self):
+        """Para o loop de reconhecimento de voz."""
+        self.is_listening = False
+
+    def _start_listening_from_pc(self, on_letter_spelled):
         """Usa o microfone do PC para ouvir a palavra soletrada."""
         r = sr.Recognizer()
         with sr.Microphone() as source:
@@ -130,17 +129,17 @@ class NaoCommands:
                 spelled_word = r.recognize_google(audio, language='pt-BR')
                 # Limpa a palavra para ter somente letras
                 final_spelling = "".join(filter(str.isalpha, spelled_word)).lower()
-                on_final_word(final_spelling)
+                on_letter_spelled(final_spelling)
             except sr.UnknownValueError:
                 self.say("Desculpe, não entendi o que você disse.")
-                on_final_word("") # Retorna vazio para indicar erro
+                on_letter_spelled("") # Retorna vazio para indicar erro
             except sr.RequestError as e:
                 self.say("Não foi possível se conectar ao serviço de reconhecimento de voz.")
                 print(f"Erro no serviço Google Speech Recognition; {e}")
-                on_final_word("")
+                on_letter_spelled("")
             except Exception as e:
                 print(f"Ocorreu um erro: {e}")
-                on_final_word("")
+                on_letter_spelled("")
 
     def subscribe_to_touch_events(self, left_callback, right_callback):
         """Inscreve-se nos eventos de toque da mão e define os callbacks."""
