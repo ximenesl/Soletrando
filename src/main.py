@@ -116,7 +116,7 @@ class SoletrandoApp(ctk.CTk):
         
         threading.Thread(
             target=self.nao_commands.start_listening_for_spelling,
-            args=(self.update_spelling_from_thread, self.check_spelling_from_thread, source),
+            args=(self.update_spelling_from_thread, source),
             daemon=True
         ).start()
 
@@ -124,11 +124,12 @@ class SoletrandoApp(ctk.CTk):
         self.user_spelling = spelling
         self.after(0, self.frames[TelaSoletrar].update_spelled_letters, self.user_spelling)
 
-    def check_spelling_from_thread(self, final_spelling):
-        self.user_spelling = final_spelling
-        self.after(0, self.finalize_check)
+
 
     def finalize_check(self):
+        if self.nao_commands and self.nao_commands.is_listening:
+            self.nao_commands.stop_listening()
+
         self.frames[TelaSoletrar].update_spelled_letters(self.user_spelling)
 
         normalized_spelling = self.user_spelling.lower().replace(" ", "")
