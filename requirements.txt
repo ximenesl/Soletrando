@@ -4,3 +4,4 @@ thefuzz
 python-Levenshtein
 Pillow
 SpeechRecognition
+PyAudio
