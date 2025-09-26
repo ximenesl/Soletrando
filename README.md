@@ -1,6 +1,6 @@
 # Soletrando com o Robô NAO
 
-Este é um jogo interativo de soletrar desenvolvido em Python, onde o jogador interage com o robô NAO para soletrar palavras. O jogo possui uma interface gráfica moderna e diversas funcionalidades para auxiliar no aprendizado e na diversão.
+Este é um jogo interativo de soletração desenvolvido em Python, onde o jogador interage com o robô NAO para soletrar palavras. O jogo possui uma interface gráfica moderna e diversas funcionalidades para auxiliar no aprendizado e na diversão.
 
 ## ✨ Funcionalidades
 
@@ -13,31 +13,11 @@ Este é um jogo interativo de soletrar desenvolvido em Python, onde o jogador in
   - Toque no sensor da **mão direita** para confirmar a palavra soletrada.
 - **Gerenciamento de Palavras:** As palavras de um nível não se repetem até que toda a lista seja percorrida.
 
-## 📂 Estrutura do Projeto
-
-```
-Soletrando/
-├── word_lists/         # Contém os arquivos .txt com as palavras para cada nível
-├── assets/               # Contém os recursos de imagem, como o logo
-├── main.py               # Arquivo principal que executa a aplicação
-├── nao_commands.py       # Módulo que lida com os comandos do NAO (fala, ouvir, toque)
-├── nao_connection.py     # Módulo para gerenciar a conexão com o robô
-├── emoji_map.py          # Dicionário que mapeia palavras a emojis
-├── requirements.txt      # Lista de dependências do projeto
-└── README.md             # Este arquivo
-```
-
-## ⚙️ Pré-requisitos
-
-- Python 3.8 ou superior
-- Acesso a um robô NAO na mesma rede que o computador
-- Um microfone (caso queira usar a opção "PC")
-
-## 🚀 Instalação e Execução
+## 🚀 Como Rodar o Projeto
 
 Siga os passos abaixo para configurar e rodar o projeto:
 
-**1. Clone o Repositório**
+**1. Clone o Repositório (se ainda não o fez)**
 
 ```bash
 # Se estiver usando Git
@@ -45,9 +25,9 @@ git clone <URL_DO_REPOSITORIO>
 # Ou simplesmente baixe e extraia o arquivo ZIP do projeto.
 ```
 
-**2. Crie um Ambiente Virtual (Recomendado)**
+**2. Crie e Ative um Ambiente Virtual (Recomendado)**
 
-Isso isola as dependências do seu projeto.
+Isso isola as dependências do seu projeto e evita conflitos.
 
 ```bash
 # No Windows
@@ -61,7 +41,7 @@ source venv/bin/activate
 
 **3. Instale as Dependências**
 
-Execute o comando abaixo na raiz do projeto para instalar todas as bibliotecas necessárias.
+Com o ambiente virtual ativado, execute o comando abaixo na raiz do projeto para instalar todas as bibliotecas necessárias.
 
 ```bash
 pip install -r requirements.txt
@@ -69,10 +49,10 @@ pip install -r requirements.txt
 
 **4. Execute o Jogo**
 
-Com as dependências instaladas e o ambiente virtual ativado, execute o arquivo `main.py`.
+Agora, basta rodar o arquivo `main.py` que está na pasta `src`.
 
 ```bash
-python main.py
+python src/main.py
 ```
 
 **5. Como Jogar**
@@ -80,6 +60,30 @@ python main.py
 - Ao iniciar, a primeira tela pedirá o **endereço de IP** do seu robô NAO.
 - Após a conexão, você irá para a tela de início, onde poderá escolher o **nível de dificuldade** (1º ao 6º ano) e a **fonte do microfone** (NAO ou PC).
 - Clique em "Iniciar Jogo" e divirta-se!
+
+## ⚙️ Pré-requisitos
+
+- Python 3.8 ou superior
+- Acesso a um robô NAO na mesma rede que o computador
+- Um microfone (caso queira usar a opção "PC")
+
+## 📂 Estrutura do Projeto
+
+```
+Soletrando/
+├── src/                  # Contém todo o código fonte da aplicação
+│   ├── main.py           # Arquivo principal que executa a aplicação
+│   ├── app/              # Módulos da interface gráfica e controle do jogo
+│   ├── config/           # Configurações, como caminhos de arquivos
+│   ├── data/             # Arquivos de dados, como o mapa de emojis
+│   ├── game/             # Lógica principal do jogo
+│   ├── services/         # Módulos de serviços (NAO, reconhecimento de voz)
+│   └── ...
+├── word_lists/           # Contém os arquivos .txt com as palavras para cada nível
+├── assets/               # Contém os recursos de imagem, como o logo
+├── requirements.txt      # Lista de dependências do projeto
+└── README.md             # Este arquivo
+```
 
 ## 👥 Integrantes
 
