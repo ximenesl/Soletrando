@@ -42,7 +42,7 @@ class ComandosNAO:
         else:
             print(f"[SIMULAÇÃO] NAO diria: {texto}")
 
-    def iniciar_escuta_soletracao(self, callback_letra: callable, callback_final: callable):
+    def iniciar_escuta_soletracao(self, soletracao_inicial: str, callback_letra: callable, callback_final: callable):
         """Inicia o reconhecimento de voz do NAO para soletrar uma palavra."""
         if not self.asr or not self.memory:
             self.dizer("Não consigo ouvir você agora.")
@@ -50,31 +50,31 @@ class ComandosNAO:
             return
 
         self.escutando = True
-        soletracao_atual = ""
+        soletracao_atual = soletracao_inicial
         self.dizer("Pode começar a soletrar.")
 
         try:
             self.asr.subscribe("Soletrando_NAO")
-            self.memory.insertData("WordRecognized", ["", 0]) # Limpa o dado anterior
+            self.memory.insertData("WordRecognized", ["", 0])
 
             while self.escutando:
-                time.sleep(0.5) # Pequena pausa para não sobrecarregar
+                time.sleep(0.5)
                 valor = self.memory.getData("WordRecognized")
                 if not (valor and valor[0]):
                     continue
 
                 palavra_ouvida = valor[0].lower()
                 confianca = valor[1]
-                self.memory.insertData("WordRecognized", ["", 0]) # Reseta para a próxima detecção
+                self.memory.insertData("WordRecognized", ["", 0]) 
 
-                if confianca < 0.35: # Limiar de confiança
+                if confianca < 0.35: 
                     continue
 
                 letra = None
                 if palavra_ouvida in MAPA_LETRAS_REVERSO:
                     letra = MAPA_LETRAS_REVERSO[palavra_ouvida]
                 else:
-                    # Usa fuzzy matching se a palavra exata não for encontrada
+                   
                     melhor_correspondecia, pontuacao = process.extractOne(palavra_ouvida, MAPA_LETRAS_REVERSO.keys())
                     if pontuacao >= 80:
                         letra = MAPA_LETRAS_REVERSO[melhor_correspondecia]

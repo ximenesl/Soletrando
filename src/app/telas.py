@@ -1,11 +1,14 @@
 """Módulo com as telas (frames) da aplicação."""
 import customtkinter as ctk
+import speech_recognition as sr
 
 class TelaSoletrar(ctk.CTkFrame):
     """Frame principal onde o jogo de soletração acontece."""
     def __init__(self, parent, app_callbacks):
         super().__init__(parent, fg_color="transparent")
         self.app_callbacks = app_callbacks
+        self.mic_map = {}
+        self.mic_selecionado = ctk.StringVar()
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
@@ -20,18 +23,49 @@ class TelaSoletrar(ctk.CTkFrame):
         self.status_label = ctk.CTkLabel(self, text="", font=ctk.CTkFont(size=18))
         self.status_label.grid(row=2, column=0, pady=10)
 
+        # --- Seleção de Microfone ---
+        mic_frame = ctk.CTkFrame(self, fg_color="transparent")
+        mic_frame.grid(row=3, column=0, pady=(10, 0))
+
+        ctk.CTkLabel(mic_frame, text="Microfone:", font=ctk.CTkFont(size=14)).pack(side="left", padx=(0, 5))
+        
+        mic_names = sr.Microphone.list_microphone_names()
+        self.mic_map = {name: i for i, name in enumerate(mic_names)}
+        
+        if mic_names:
+            self.mic_selecionado.set(mic_names[0])
+            self.mic_menu = ctk.CTkOptionMenu(mic_frame, variable=self.mic_selecionado, values=mic_names, width=300)
+        else:
+            self.mic_selecionado.set("Nenhum microfone encontrado")
+            self.mic_menu = ctk.CTkOptionMenu(mic_frame, variable=self.mic_selecionado, values=["Nenhum microfone encontrado"], state="disabled")
+        
+        self.mic_menu.pack(side="left")
+
         # --- Botões de Ação ---
         botoes_frame = ctk.CTkFrame(self, fg_color="transparent")
-        botoes_frame.grid(row=3, column=0, pady=20)
+        botoes_frame.grid(row=4, column=0, pady=20)
 
-        self.botao_soletrar = ctk.CTkButton(botoes_frame, text="Soletrar por Voz", command=self.app_callbacks["iniciar_soletracao"], height=40)
+        self.botao_soletrar = ctk.CTkButton(botoes_frame, text="Soletrar por Voz", command=self._iniciar_soletracao_com_mic, height=40)
         self.botao_soletrar.pack(side="left", padx=10)
 
         self.botao_confirmar = ctk.CTkButton(botoes_frame, text="Confirmar", command=self.app_callbacks["finalizar_verificacao"], height=40)
         self.botao_confirmar.pack(side="left", padx=10)
 
+        self.botao_apagar = ctk.CTkButton(botoes_frame, text="Apagar", command=self.app_callbacks["apagar_ultima_letra"], height=40)
+        self.botao_apagar.pack(side="left", padx=10)
+
         self.botao_outra_palavra = ctk.CTkButton(botoes_frame, text="Pular Palavra", command=self.app_callbacks["iniciar_nova_rodada"], height=40)
         self.botao_outra_palavra.pack(side="left", padx=10)
+
+    def _iniciar_soletracao_com_mic(self):
+        mic_name = self.mic_selecionado.get()
+        device_index = self.mic_map.get(mic_name)
+        self.app_callbacks["iniciar_soletracao"](device_index=device_index)
+
+    def _iniciar_soletracao_com_mic(self):
+        mic_name = self.mic_selecionado.get()
+        device_index = self.mic_map.get(mic_name)
+        self.app_callbacks["iniciar_soletracao"](device_index=device_index)
 
     def atualizar_exibicao_palavra(self, palavra: str):
         self.palavra_label.configure(text=f"A palavra é: {palavra.upper()}")
@@ -65,7 +99,6 @@ class TelaSoletrar(ctk.CTkFrame):
     def configurar_estado_botoes(self, estado: str):
         """Altera o estado dos botões (normal, disabled)."""
         self.botao_soletrar.configure(state=estado)
-        self.botao_confirmar.configure(state=estado)
         self.botao_outra_palavra.configure(state=estado)
 
 

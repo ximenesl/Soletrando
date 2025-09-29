@@ -42,7 +42,8 @@ class AppSoletrando(ctk.CTk):
         callbacks = {
             "iniciar_soletracao": self.controlador.iniciar_soletracao,
             "finalizar_verificacao": self.controlador.finalizar_verificacao,
-            "iniciar_nova_rodada": self.controlador.iniciar_nova_rodada
+            "iniciar_nova_rodada": self.controlador.iniciar_nova_rodada,
+            "apagar_ultima_letra": self.controlador.apagar_ultima_letra
         }
 
         self.tela_soletrar = TelaSoletrar(container_central, callbacks)
