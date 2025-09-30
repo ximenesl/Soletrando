@@ -14,6 +14,7 @@ class ComandosNAO:
         self.touch = self.conexao.obter_servico("ALTouch")
         self.leds = self.conexao.obter_servico("ALLeds")
         self.motion = self.conexao.obter_servico("ALMotion")
+        self.audio_device = self.conexao.obter_servico("ALAudioDevice")
 
         self.assinantes_toque = {}
         self.escutando = False
@@ -24,10 +25,20 @@ class ComandosNAO:
             except Exception as e:
                 print(f"Erro ao configurar o idioma do NAO: {e}")
         
+        if self.audio_device:
+            try:
+                # Seleciona os microfones frontais (melhor para reconhecimento de voz)
+                # O 3 significa (1+2), que são os microfones da esquerda e direita.
+                self.audio_device.setClientPreferences(self.__class__.__name__, 4, 3, 0)
+            except Exception as e:
+                print(f"Erro ao configurar os microfones do NAO: {e}")
+
         if self.asr:
             try:
                 self.asr.setLanguage("Brazilian")
-                self.asr.setParameter("Sensitivity", 0.7)
+                # Ajustes para ambientes ruidosos
+                self.asr.setParameter("EnergyThreshold", 3000) 
+                self.asr.setParameter("Sensitivity", 0.6)
                 self.asr.setVocabulary(VOCABULARIO_LETRAS, False)
             except Exception as e:
                 print(f"Erro ao configurar o reconhecimento de voz do NAO: {e}")
