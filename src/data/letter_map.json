@@ -24,5 +24,6 @@
     "w": ["dáblio", "dablio", "w", "uê"],
     "x": ["xis", "x", "chis", "sh", "ks"],
     "y": ["ípsilon", "ipsilon", "y", "í", "i"],
-    "z": ["zê", "ze", "z", "zi"]
+    "z": ["zê", "ze", "z", "zi"],
+    "ç": ["cê cedilha", "ce cedilha", "ç", "ci cedilha", "cedilha"]
 }
