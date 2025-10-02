@@ -38,7 +38,7 @@ class ComandosNAO:
                 self.asr.setLanguage("Brazilian")
                 # Ajustes para ambientes ruidosos
                 self.asr.setParameter("EnergyThreshold", 3000) 
-                self.asr.setParameter("Sensitivity", 0.4)
+                self.asr.setParameter("Sensitivity", 0.6)
                 self.asr.setVocabulary(VOCABULARIO_LETRAS, False)
             except Exception as e:
                 print(f"Erro ao configurar o reconhecimento de voz do NAO: {e}")
