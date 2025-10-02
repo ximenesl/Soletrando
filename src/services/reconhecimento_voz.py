@@ -13,14 +13,18 @@ def carregar_mapa_letras(caminho_arquivo: str) -> tuple[dict, dict, list]:
         mapa_reverso = {palavra_falada: letra 
                         for letra, palavras_faladas in mapa_letras.items() 
                         for palavra_falada in palavras_faladas}
-        
-vocabulario = list(mapa_reverso.keys())
-        return mapa_letras, mapa_reverso, vocabulario
+
+        vocabulario = list(mapa_reverso.keys())  # A linha foi movida para dentro do try
+
+        return mapa_letras, mapa_reverso, vocabulario  # Ajustei a indentação para dentro do try
     except FileNotFoundError:
         print(f"Erro: O arquivo de mapa de letras '{caminho_arquivo}' não foi encontrado.")
         return {}, {}, []
     except json.JSONDecodeError:
         print(f"Erro: O arquivo '{caminho_arquivo}' não é um JSON válido.")
+        return {}, {}, []
+    except Exception as e:
+        print(f"Ocorreu um erro inesperado: {e}")
         return {}, {}, []
 
 MAPA_LETRAS, MAPA_LETRAS_REVERSO, VOCABULARIO_LETRAS = carregar_mapa_letras(ARQUIVO_MAPA_LETRAS)
