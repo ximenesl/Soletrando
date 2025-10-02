@@ -25,5 +25,16 @@
     "x": ["xis", "x", "chis", "sh", "ks"],
     "y": ["ípsilon", "ipsilon", "y", "í", "i"],
     "z": ["zê", "ze", "z", "zi"],
-    "ç": ["cê cedilha", "ce cedilha", "ç", "ci cedilha", "cedilha"]
+    "ç": ["cê cedilha", "ce cedilha", "ç", "ci cedilha", "cedilha"],
+    "ã": ["a til", "a com til"],
+    "õ": ["o til", "o com til"],
+    "á": ["a agudo", "a com agudo"],
+    "é": ["e agudo", "e com agudo"],
+    "í": ["i agudo", "i com agudo"],
+    "ó": ["o agudo", "o com agudo"],
+    "ú": ["u agudo", "u com agudo"],
+    "ê": ["e circunflexo", "e com circunflexo"],
+    "â": ["a circunflexo", "a com circunflexo"],
+    "ô": ["o circunflexo", "o com circunflexo"],
+    "à": ["a crase", "a com crase"]
 }
