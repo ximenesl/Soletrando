@@ -7,29 +7,27 @@ class ConexaoNAO:
     def __init__(self):
         self.ip = None
         self.porta = PORTA_NAO
+        self.session = None
         self.app = None
-        self.sessao = None
 
-    def conectar(self, ip: str):
+    def conectar(self, ip: str) -> bool:
         """Conecta-se ao robô NAO em um determinado IP."""
-        if self.sessao and self.ip == ip:
+        if self.session and self.session.isConnected():
             print(f"Já conectado ao NAO em {self.ip}:{self.porta}")
             return True
-        
-        self.desconectar() # Garante que qualquer conexão anterior seja fechada
-        self.ip = ip
-
         try:
-            url_conexao = f"tcp://{self.ip}:{self.porta}"
-            self.app = qi.Application(["Soletrando", f"--qi-url={url_conexao}"])
+            self.ip = ip
+            self.app = qi.Application(["Soletrando", f"--qi-url=tcp://{self.ip}:{self.porta}"])
             self.app.start()
-            self.sessao = self.app.session
-            print(f"Conectado ao NAO em {self.ip}:{self.porta}")
-            return True
-        except RuntimeError as e:
+            self.session = self.app.session
+            if self.session.isConnected():
+                print(f"Conectado ao NAO em {self.ip}:{self.porta}")
+                return True
+            return False
+        except Exception as e:
             print(f"Erro ao conectar ao NAO: {e}")
+            self.session = None
             self.app = None
-            self.sessao = None
             return False
 
     def desconectar(self):
@@ -38,14 +36,13 @@ class ConexaoNAO:
             print("Encerrando conexão com o NAO.")
             self.app.stop()
             self.app = None
-            self.sessao = None
-            self.ip = None
+            self.session = None
 
     def obter_servico(self, nome_servico: str):
         """Retorna um serviço da sessão do NAO se a conexão estiver ativa."""
-        if self.sessao:
+        if self.session and self.session.isConnected():
             try:
-                return self.sessao.service(nome_servico)
+                return self.session.service(nome_servico)
             except Exception as e:
                 print(f"Erro ao obter o serviço '{nome_servico}': {e}")
         return None

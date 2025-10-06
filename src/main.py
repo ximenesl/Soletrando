@@ -60,7 +60,7 @@ class AppSoletrando(ctk.CTk):
         self.painel_nao = PainelNAO(self, self.controlador.conectar_nao, self.controlador.desconectar_nao)
         self.painel_nao.place(x=10, y=10, anchor="nw")
 
-        # --- Controles do Jogo (Nível e Microfone) ---
+        # --- Controles do Jogo (Nível) ---
         controles_frame = ctk.CTkFrame(self, fg_color="#2A2D2E", corner_radius=10)
         controles_frame.place(relx=0.99, y=10, anchor="ne")
 
@@ -71,14 +71,6 @@ class AppSoletrando(ctk.CTk):
         )
         self.seletor_nivel.set(self.controlador.nivel_atual)
         self.seletor_nivel.pack(padx=10, pady=(0,10))
-
-        ctk.CTkLabel(controles_frame, text="Microfone:").pack(padx=10, pady=(5,0))
-        self.seletor_mic = ctk.CTkSegmentedButton(
-            controles_frame, values=["PC", "NAO"],
-            command=self.controlador.definir_fonte_microfone
-        )
-        self.seletor_mic.set(self.controlador.fonte_microfone.upper())
-        self.seletor_mic.pack(padx=10, pady=(0,10))
 
         # Inicia o jogo
         self.controlador.iniciar_jogo()
@@ -92,10 +84,6 @@ class AppSoletrando(ctk.CTk):
     def mostrar_erro(self, mensagem: str):
         """Exibe uma mensagem de erro na tela de soletração."""
         self.tela_soletrar.definir_status(mensagem, "#E74C3C")
-
-    def definir_selecao_mic(self, mic: str):
-        """Atualiza a seleção do botão de microfone na UI."""
-        self.seletor_mic.set(mic.upper())
 
     def fechar(self):
         """Método chamado ao fechar a janela."""

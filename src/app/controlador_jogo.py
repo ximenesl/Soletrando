@@ -20,7 +20,6 @@ class ControladorJogo:
         self.palavra_atual = ""
         self.soletracao_usuario = ""
         self.nivel_atual = "1"
-        self.fonte_microfone = "pc" 
         self.escutando = False
         self.thread_escuta = None
 
@@ -57,22 +56,15 @@ class ControladorJogo:
             return
 
         self.escutando = True
-        self.app.tela_soletrar.definir_status(f"Ouvindo pelo {self.fonte_microfone.upper()}...", "white")
+        self.app.tela_soletrar.definir_status("Ouvindo...", "white")
         self.app.tela_soletrar.configurar_estado_botoes("disabled")
 
-        if self.fonte_microfone == 'pc':
-            self.reconhecimento_pc = ReconhecimentoVozPC(device_index=device_index)
-            self.thread_escuta = threading.Thread(
-                target=self.reconhecimento_pc.ouvir_soletracao,
-                args=(self.soletracao_usuario, self.atualizar_soletracao_da_thread, self.finalizar_escuta_da_thread),
-                daemon=True
-            )
-        elif self.fonte_microfone == 'nao' and self.comandos_nao:
-            self.thread_escuta = threading.Thread(
-                target=self.comandos_nao.iniciar_escuta_soletracao,
-                args=(self.soletracao_usuario, self.atualizar_soletracao_da_thread, self.finalizar_escuta_da_thread),
-                daemon=True
-            )
+        self.reconhecimento_pc = ReconhecimentoVozPC(device_index=device_index)
+        self.thread_escuta = threading.Thread(
+            target=self.reconhecimento_pc.ouvir_soletracao,
+            args=(self.soletracao_usuario, self.atualizar_soletracao_da_thread, self.finalizar_escuta_da_thread),
+            daemon=True
+        )
         
         if self.thread_escuta:
             self.thread_escuta.start()
@@ -82,10 +74,8 @@ class ControladorJogo:
         if self.escutando:
             print("Parando a escuta...")
             self.escutando = False
-            if self.fonte_microfone == 'pc' and self.reconhecimento_pc:
+            if self.reconhecimento_pc:
                 self.reconhecimento_pc.parar_de_ouvir()
-            elif self.fonte_microfone == 'nao' and self.comandos_nao:
-                self.comandos_nao.parar_escuta()
             
             if self.thread_escuta and self.thread_escuta.is_alive():
                 self.thread_escuta.join(timeout=1) 
@@ -135,15 +125,6 @@ class ControladorJogo:
         self.nivel_atual = nivel
         self.iniciar_jogo()
 
-    def definir_fonte_microfone(self, fonte: str):
-        if fonte.lower() == 'nao' and not self.comandos_nao:
-            self.app.mostrar_erro("Conecte-se ao NAO para usar seu microfone.")
-            self.app.definir_selecao_mic('pc') 
-            return
-        self.fonte_microfone = fonte.lower()
-        print(f"Fonte de áudio alterada para: {self.fonte_microfone}")
-
-    
     def conectar_nao(self, ip: str):
         if self.conexao_nao.conectar(ip):
             self.comandos_nao = ComandosNAO(self.conexao_nao)
@@ -165,10 +146,9 @@ class ControladorJogo:
             print("Toque na mão esquerda detectado.")
             if self.escutando:
                 self.parar_escuta_voz()
-            self.soletracao_usuario = ""
-            self.app.after(0, self.app.tela_soletrar.limpar_letras_soletradas)
+            self.app.after(0, self.apagar_ultima_letra)
             if self.comandos_nao:
-                self.comandos_nao.dizer("Apagado")
+                self.comandos_nao.dizer("Letra apagada")
 
     def _callback_mao_direita(self, value):
         if value == 1.0:
@@ -184,9 +164,6 @@ class ControladorJogo:
         self.conexao_nao.desconectar()
         self.comandos_nao = None
         self.app.painel_nao.atualizar_status(conectado=False)
-        if self.fonte_microfone == 'nao': 
-            self.definir_fonte_microfone('pc')
-            self.app.definir_selecao_mic('pc')
 
     def fechar_aplicacao(self):
         """Limpa os recursos antes de fechar."""
