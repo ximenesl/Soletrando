@@ -18,24 +18,8 @@ def carregar_mapa_letras(caminho_arquivo: str) -> tuple[dict, dict, list]:
         vocabulario = list(mapa_reverso.keys())
 
         return mapa_letras, mapa_reverso, vocabulario
-    except FileNotFoundError:
-        print(f"Erro: O arquivo de mapa de letras '{caminho_arquivo}' não foi encontrado.")
+    except (FileNotFoundError, json.JSONDecodeError):
         return {}, {}, []
-    except json.JSONDecodeError:
-        print(f"Erro: O arquivo '{caminho_arquivo}' não é um JSON válido.")
-        return {}, {}, []
-
-def listar_microfones():
-    """Lista os microfones disponíveis e seus índices."""
-    print("Procurando microfones...")
-    mic_names = sr.Microphone.list_microphone_names()
-    if not mic_names:
-        print("Nenhum microfone encontrado.", file=sys.stderr)
-        return
-        
-    print("Microfones encontrados:")
-    for index, name in enumerate(mic_names):
-        print(f"  Índice {index}: {name}")
 
 MAPA_LETRAS, MAPA_LETRAS_REVERSO, VOCABULARIO_LETRAS = carregar_mapa_letras(ARQUIVO_MAPA_LETRAS)
 
@@ -54,45 +38,27 @@ class ReconhecimentoVozPC:
 
         try:
             with sr.Microphone(device_index=self.device_index) as source:
-                mic_name = sr.Microphone.list_microphone_names()[source.device_index]
-                print(f"Usando microfone: {mic_name} (Índice: {source.device_index})")
-                
                 self.reconhecedor.adjust_for_ambient_noise(source, duration=0.5)
-                print(f"Limiar de energia ajustado para: {self.reconhecedor.energy_threshold:.2f}")
-                print("Microfone do PC: Pode começar a soletrar.")
 
                 while self.escutando:
                     try:
                         audio = self.reconhecedor.listen(source, timeout=2, phrase_time_limit=2)
                         texto = self.reconhecedor.recognize_google(audio, language='pt-BR').lower()
-                        print(f"PC ouviu: '{texto}'")
 
-                        
                         melhor_correspondecia, pontuacao = process.extractOne(texto, VOCABULARIO_LETRAS)
                         
                         if pontuacao >= 75:
                             letra = MAPA_LETRAS_REVERSO[melhor_correspondecia]
                             soletracao_atual += letra
                             callback_letra(soletracao_atual) 
-                        else:
-                            print(f"Nenhuma letra correspondente encontrada para '{texto}' (pontuação: {pontuacao})")
 
-                    except sr.WaitTimeoutError:
-                        
+                    except (sr.WaitTimeoutError, sr.UnknownValueError, sr.RequestError):
                         continue
-                    except sr.UnknownValueError:
-                       
-                        print("Não foi possível entender o áudio.")
-                        continue
-                    except sr.RequestError as e:
-                        print(f"Erro no serviço de reconhecimento; {e}")
-                        break 
-        except Exception as e:
-            print(f"Ocorreu um erro inesperado no reconhecimento de voz: {e}")
+        except Exception:
+            pass
         finally:
             self.escutando = False
             callback_final()
-            print("PC: Fim da escuta.")
 
     def parar_de_ouvir(self):
         """Para o loop de reconhecimento de voz."""

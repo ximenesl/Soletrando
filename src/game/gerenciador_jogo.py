@@ -1,14 +1,14 @@
-"""Módulo do Controlador do Jogo, o cérebro da aplicação."""
+
+"""Módulo do Gerenciador do Jogo, o cérebro do back-end."""
 import threading
 from game.gerenciador_palavras import GerenciadorPalavras
 from services.conexao_nao import ConexaoNAO
 from services.comandos_nao import ComandosNAO
 from services.reconhecimento_voz import ReconhecimentoVozPC
 
-class ControladorJogo:
-    """Orquestra a UI, a lógica do jogo e os serviços."""
-    def __init__(self, app):
-        self.app = app
+class GerenciadorJogo:
+    """Orquestra a lógica do jogo e os serviços."""
+    def __init__(self):
         self.gerenciador_palavras = GerenciadorPalavras()
         self.reconhecimento_pc: ReconhecimentoVozPC | None = None
         
@@ -23,64 +23,67 @@ class ControladorJogo:
         self.fonte_microfone = "pc" 
         self.escutando = False
         self.thread_escuta = None
+        self.jogo_iniciado = False
+        self.erro = None
 
     def iniciar_jogo(self):
         """Carrega as palavras do nível selecionado e inicia a primeira rodada."""
         if self.gerenciador_palavras.carregar_palavras(self.nivel_atual):
-            self.iniciar_nova_rodada()
+            self.jogo_iniciado = True
+            return self.iniciar_nova_rodada()
         else:
-            self.app.mostrar_erro(f"Não foi possível carregar palavras para o nível {self.nivel_atual}.")
+            self.erro = f"Não foi possível carregar palavras para o nível {self.nivel_atual}."
+            return {"erro": self.erro}
 
     def iniciar_nova_rodada(self):
-        """Pede uma nova palavra e atualiza a UI."""
+        """Pede uma nova palavra e atualiza o estado."""
         self.parar_escuta_voz()
         self.soletracao_usuario = ""
         nova_palavra = self.gerenciador_palavras.obter_nova_palavra()
 
         if not nova_palavra:
-            self.app.mostrar_erro("Todas as palavras do nível foram concluídas!")
+            self.erro = "Todas as palavras do nível foram concluídas!"
             if self.comandos_nao: self.comandos_nao.dizer("Você completou todas as palavras!")
-            return
+            return {"status": "fim_de_jogo", "mensagem": self.erro}
 
         self.palavra_atual = nova_palavra
         
-        self.app.mudar_para_tela("soletrar")
-        self.app.tela_soletrar.atualizar_exibicao_palavra(self.palavra_atual)
-        
         if self.comandos_nao:
             self.comandos_nao.dizer(f"A nova palavra é: {self.palavra_atual}")
+        
+        return {"palavra": self.palavra_atual}
 
     def iniciar_soletracao(self, device_index: int | None = None):
         """Inicia o reconhecimento de voz em uma thread separada."""
         if self.escutando:
-            print("Já estou escutando.")
-            return
+            return {"status": "ocupado", "mensagem": "Já estou escutando."}
 
         self.escutando = True
-        self.app.tela_soletrar.definir_status(f"Ouvindo pelo {self.fonte_microfone.upper()}...", "white")
-        self.app.tela_soletrar.configurar_estado_botoes("disabled")
-
+        
         if self.fonte_microfone == 'pc':
             self.reconhecimento_pc = ReconhecimentoVozPC(device_index=device_index)
             self.thread_escuta = threading.Thread(
                 target=self.reconhecimento_pc.ouvir_soletracao,
-                args=(self.soletracao_usuario, self.atualizar_soletracao_da_thread, self.finalizar_escuta_da_thread),
+                args=(self.soletracao_usuario, self._atualizar_soletracao, self._finalizar_escuta),
                 daemon=True
             )
         elif self.fonte_microfone == 'nao' and self.comandos_nao:
             self.thread_escuta = threading.Thread(
                 target=self.comandos_nao.iniciar_escuta_soletracao,
-                args=(self.soletracao_usuario, self.atualizar_soletracao_da_thread, self.finalizar_escuta_da_thread),
+                args=(self.soletracao_usuario, self._atualizar_soletracao, self._finalizar_escuta),
                 daemon=True
             )
         
         if self.thread_escuta:
             self.thread_escuta.start()
+            return {"status": "sucesso", "mensagem": f"Ouvindo pelo {self.fonte_microfone.upper()}..."}
+        else:
+            self.escutando = False
+            return {"status": "erro", "mensagem": "Não foi possível iniciar a escuta."}
 
     def parar_escuta_voz(self):
         """Sinaliza para a thread de escuta parar."""
         if self.escutando:
-            print("Parando a escuta...")
             self.escutando = False
             if self.fonte_microfone == 'pc' and self.reconhecimento_pc:
                 self.reconhecimento_pc.parar_de_ouvir()
@@ -90,20 +93,18 @@ class ControladorJogo:
             if self.thread_escuta and self.thread_escuta.is_alive():
                 self.thread_escuta.join(timeout=1) 
             
-            self.finalizar_escuta_da_thread()
+            self._finalizar_escuta()
+        return {"status": "parado"}
 
-    def atualizar_soletracao_da_thread(self, soletracao: str):
-        """Callback da thread de reconhecimento para atualizar a UI."""
+    def _atualizar_soletracao(self, soletracao: str):
+        """Callback para atualizar a soletração."""
         self.soletracao_usuario = soletracao
-        self.app.after(0, self.app.tela_soletrar.atualizar_letras_soletradas, self.soletracao_usuario)
 
-    def finalizar_escuta_da_thread(self):
-        """Callback para quando a thread de escuta termina."""
+    def _finalizar_escuta(self):
+        """Callback para quando a escuta termina."""
         self.escutando = False
-        self.app.after(0, self.app.tela_soletrar.definir_status, "")
-        self.app.after(0, self.app.tela_soletrar.configurar_estado_botoes, "normal")
 
-    def finalizar_verificacao(self):
+    def verificar_soletracao(self):
         """Para a escuta e verifica se a soletração está correta."""
         self.parar_escuta_voz()
 
@@ -120,76 +121,56 @@ class ControladorJogo:
         
         if self.comandos_nao: self.comandos_nao.dizer(resultado_texto)
         
-        self.app.mudar_para_tela("resultado")
-        self.app.tela_resultado.definir_resultado(self.palavra_atual, self.soletracao_usuario, acertou)
+        return {
+            "resultado": "acertou" if acertou else "errou",
+            "palavra_correta": self.palavra_atual,
+            "sua_soletracao": self.soletracao_usuario
+        }
 
     def apagar_ultima_letra(self):
-        """Apaga a última letra da soletração e atualiza a UI."""
+        """Apaga a última letra da soletração."""
         self.parar_escuta_voz()
         if self.soletracao_usuario:
             self.soletracao_usuario = self.soletracao_usuario[:-1]
-            self.app.tela_soletrar.atualizar_letras_soletradas(self.soletracao_usuario)
-
+        return {"soletracao_atual": self.soletracao_usuario}
    
     def definir_nivel(self, nivel: str):
         self.nivel_atual = nivel
-        self.iniciar_jogo()
+        if self.jogo_iniciado:
+            return self.iniciar_jogo()
+        return {"status": "nível definido"}
 
     def definir_fonte_microfone(self, fonte: str):
         if fonte.lower() == 'nao' and not self.comandos_nao:
-            self.app.mostrar_erro("Conecte-se ao NAO para usar seu microfone.")
-            self.app.definir_selecao_mic('pc') 
-            return
+            return {"status": "erro", "mensagem": "Conecte-se ao NAO para usar seu microfone."}
         self.fonte_microfone = fonte.lower()
-        print(f"Fonte de áudio alterada para: {self.fonte_microfone}")
-
+        return {"status": "fonte de microfone definida", "fonte": self.fonte_microfone}
     
     def conectar_nao(self, ip: str):
         if self.conexao_nao.conectar(ip):
             self.comandos_nao = ComandosNAO(self.conexao_nao)
-            self.app.painel_nao.atualizar_status(conectado=True, ip=ip)
             self.comandos_nao.dizer("Olá! Estou pronto para soletrar.")
-            self._assinar_eventos_nao()
+            return {"status": "conectado", "ip": ip}
         else:
-            self.app.painel_nao.atualizar_status(conectado=False)
-            self.app.mostrar_erro(f"Falha ao conectar no IP {ip}")
-
-    def _assinar_eventos_nao(self):
-        if not self.comandos_nao:
-            return
-        self.comandos_nao.assinar_evento_toque("HandLeftBackTouched", self._callback_mao_esquerda)
-        self.comandos_nao.assinar_evento_toque("HandRightBackTouched", self._callback_mao_direita)
-
-    def _callback_mao_esquerda(self, value):
-        if value == 1.0:
-            print("Toque na mão esquerda detectado.")
-            if self.escutando:
-                self.parar_escuta_voz()
-            self.soletracao_usuario = ""
-            self.app.after(0, self.app.tela_soletrar.limpar_letras_soletradas)
-            if self.comandos_nao:
-                self.comandos_nao.dizer("Apagado")
-
-    def _callback_mao_direita(self, value):
-        if value == 1.0:
-            print("Toque na mão direita detectado.")
-            if self.comandos_nao:
-                self.comandos_nao.dizer("Confirmado")
-            self.app.after(0, self.finalizar_verificacao)
+            return {"status": "erro", "mensagem": f"Falha ao conectar no IP {ip}"}
 
     def desconectar_nao(self):
         if self.comandos_nao:
             self.comandos_nao.dizer("Até mais!")
-            self.comandos_nao.cancelar_assinaturas_toque()
         self.conexao_nao.desconectar()
         self.comandos_nao = None
-        self.app.painel_nao.atualizar_status(conectado=False)
         if self.fonte_microfone == 'nao': 
             self.definir_fonte_microfone('pc')
-            self.app.definir_selecao_mic('pc')
+        return {"status": "desconectado"}
 
-    def fechar_aplicacao(self):
-        """Limpa os recursos antes de fechar."""
-        self.parar_escuta_voz()
-        self.desconectar_nao()
-        self.app.destroy()
+    def obter_estado(self):
+        return {
+            "palavra_atual": self.palavra_atual,
+            "soletracao_usuario": self.soletracao_usuario,
+            "nivel_atual": self.nivel_atual,
+            "fonte_microfone": self.fonte_microfone,
+            "escutando": self.escutando,
+            "jogo_iniciado": self.jogo_iniciado,
+            "erro": self.erro,
+            "nao_conectado": self.comandos_nao is not None
+        }
