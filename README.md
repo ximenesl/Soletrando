@@ -15,7 +15,9 @@ Este é um jogo interativo de soletração desenvolvido em Python, onde o jogado
 
 ## 🚀 Como Rodar o Projeto
 
-Siga os passos abaixo para configurar e rodar o projeto:
+### Backend (API)
+
+Siga os passos abaixo para configurar and rodar o backend:
 
 **1. Clone o Repositório (se ainda não o fez)**
 
@@ -47,13 +49,35 @@ Com o ambiente virtual ativado, execute o comando abaixo na raiz do projeto para
 pip install -r requirements.txt
 ```
 
-**4. Execute o Jogo**
+**4. Execute a API**
 
-Agora, basta rodar o arquivo `main.py` que está na pasta `src`.
+Agora, basta rodar o arquivo `api.py` que está na pasta `src`.
 
 ```bash
-python src/main.py
+python src/api.py
 ```
+
+### Frontend (React)
+
+**1. Navegue até a pasta do frontend**
+
+```bash
+cd frontend
+```
+
+**2. Instale as dependências**
+
+```bash
+npm install
+```
+
+**3. Execute o aplicativo**
+
+```bash
+npm start
+```
+
+O aplicativo estará disponível em [http://localhost:3000](http://localhost:3000).
 
 **5. Como Jogar**
 
