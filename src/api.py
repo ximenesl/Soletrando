@@ -58,8 +58,8 @@ async def next_round():
     return game_manager.iniciar_nova_rodada()
 
 @app.post("/game/spell", tags=["Game"])
-async def spell(device_index: int | None = None):
-    return game_manager.iniciar_soletracao(device_index)
+async def spell(device: str | int | None = None):
+    return game_manager.iniciar_soletracao(device)
 
 @app.post("/game/stop-spelling", tags=["Game"])
 async def stop_spelling():
