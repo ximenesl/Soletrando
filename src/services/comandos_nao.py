@@ -48,60 +48,6 @@ class ComandosNAO:
                     self.tts.say(str(texto))
                 except Exception:
                     pass
-    
-    def iniciar_escuta_soletracao(self, soletracao_inicial: str, callback_letra: callable, callback_final: callable):
-            """Inicia o reconhecimento de voz do NAO para soletrar uma palavra."""
-            if not self.asr or not self.memory:
-                self.dizer("Não consigo ouvir você agora.")
-                callback_final()
-                return
-    
-            self.escutando = True
-            soletracao_atual = soletracao_inicial
-            self.dizer("Pode começar a soletrar.")
-    
-            try:
-                self.asr.subscribe("Soletrando_NAO")
-                self.memory.insertData("WordRecognized", ["", 0])
-    
-                while self.escutando:
-                    time.sleep(0.5)
-                    valor = self.memory.getData("WordRecognized")
-                    if not (valor and valor[0]):
-                        continue
-    
-                    palavra_ouvida = valor[0].lower()
-                    confianca = valor[1]
-                    self.memory.insertData("WordRecognized", ["", 0]) 
-    
-                    if confianca < 0.35: 
-                        continue
-    
-                    letra = None
-                    if palavra_ouvida in MAPA_LETRAS_REVERSO:
-                        letra = MAPA_LETRAS_REVERSO[palavra_ouvida]
-                    else:
-                       
-                        melhor_correspondecia, pontuacao = process.extractOne(palavra_ouvida, MAPA_LETRAS_REVERSO.keys())
-                        if pontuacao >= 80:
-                            letra = MAPA_LETRAS_REVERSO[melhor_correspondecia]
-    
-                    if letra:
-                        soletracao_atual += letra
-                        callback_letra(soletracao_atual)
-    
-            except Exception:
-                self.dizer("Desculpe, ocorreu um erro ao tentar ouvir.")
-            finally:
-                if self.asr:
-                    self.asr.unsubscribe("Soletrando_NAO")
-                callback_final()
-
-    def parar_escuta(self):
-        """Para o loop de reconhecimento de voz do NAO."""
-        self.escutando = False
-
-
 
     def piscar_olhos(self, cor: str, duracao: float = 1.0):
         """Pisca os LEDs dos olhos do NAO com uma cor específica."""
