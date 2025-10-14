@@ -1,4 +1,4 @@
-"""Módulo para reconhecimento de voz remoto usando o NAO."""
+"""Módulo para reconhecimento de voz remoto usando o NAO a."""
 import sys
 import time
 import speech_recognition as sr
